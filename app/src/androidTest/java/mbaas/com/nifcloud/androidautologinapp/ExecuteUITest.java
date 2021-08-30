@@ -1,6 +1,5 @@
 package mbaas.com.nifcloud.androidautologinapp;
 
-import android.content.Context;
 import android.view.View;
 
 import androidx.test.espresso.PerformException;
@@ -9,50 +8,55 @@ import androidx.test.espresso.ViewAction;
 import androidx.test.espresso.util.HumanReadables;
 import androidx.test.espresso.util.TreeIterables;
 import androidx.test.internal.runner.junit4.AndroidJUnit4ClassRunner;
-import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.rule.ActivityTestRule;
 
+import com.nifcloud.mbaas.core.NCMBException;
+
 import org.hamcrest.Matcher;
-import org.junit.Assert;
-import org.junit.Before;
+import org.junit.FixMethodOrder;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.MethodSorters;
 
 import java.util.concurrent.TimeoutException;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
-import static androidx.test.espresso.matcher.ViewMatchers.*;
+import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static androidx.test.espresso.matcher.ViewMatchers.isRoot;
+import static androidx.test.espresso.matcher.ViewMatchers.withId;
+import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.CoreMatchers.containsString;
 
 @RunWith(AndroidJUnit4ClassRunner.class)
-public class LoginUITest {
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+public class ExecuteUITest {
     @Rule
     public final ActivityTestRule<MainActivity> main = new ActivityTestRule<>(MainActivity.class, true);
 
-    @Before
-    public void init() {
-        // Specify a valid string.
+    @Test
+    public void signUpInBackground() {
+        onView(withId(R.id.txtMessage)).check(matches(isDisplayed()));
+        onView(withId(R.id.txtLogin)).check(matches(isDisplayed()));
+        onView(isRoot()).perform(waitForText("はじめまして", 50000));
+        onView(isRoot()).perform(waitForText("１回目ログイン、ありがとうございます。", 50000));
     }
 
     @Test
-    public void useAppContext() {
-        Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        Assert.assertEquals("mbaas.com.nifcloud.androidautologinapp", appContext.getPackageName());
-    }
-
-    @Test
-    public void validateLoginInBackground() {
+    public void validateLoginInBackground() throws NCMBException {
         onView(withId(R.id.txtMessage)).check(matches(isDisplayed()));
         onView(withId(R.id.txtLogin)).check(matches(isDisplayed()));
         onView(isRoot()).perform(waitForText("お帰りなさい！", 50000));
         onView(isRoot()).perform(waitForText("最終ログインは：", 50000));
+
+        Utils.deleteUserIfExist(main.getActivity().getApplicationContext());
     }
 
     /**
      * Perform action of waiting for a specific view id with text.
-     * @param text The id of the view to wait for.
+     *
+     * @param text   The id of the view to wait for.
      * @param millis The timeout of until when to wait for.
      */
     public static ViewAction waitForText(final String text, final long millis) {
